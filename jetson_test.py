@@ -1,18 +1,29 @@
 import serial
 import time
 
-# Open both Arduinos
-arduino1 = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
-arduino2 = serial.Serial('/dev/ttyACM1', 9600, timeout=1)
-time.sleep(2)  # Allow time to reset
+# Open serial connections
+try:
+    arduino1 = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+except:
+    arduino1 = None
+    print("Arduino 1 not found.")
 
-# Send commands
-arduino1.write(b'START_MOTOR\n')
-arduino2.write(b'READ_SENSOR\n')
+try:
+    arduino2 = serial.Serial('/dev/ttyACM1', 9600, timeout=1)
+except:
+    arduino2 = None
+    print("Arduino 2 not found.")
 
-# Read responses
-resp1 = arduino1.readline().decode().strip()
-resp2 = arduino2.readline().decode().strip()
+time.sleep(2)  # Allow Arduino to reset
 
-print("Arduino 1:", resp1)
-print("Arduino 2:", resp2)
+def send_and_receive(arduino, name, command):
+    if arduino:
+        arduino.write((command + '\n').encode())
+        time.sleep(0.1)
+        response = arduino.readline().decode().strip()
+        print(f"{name}: Sent '{command}', Received: '{response}'")
+
+while True:
+    send_and_receive(arduino1, "Arduino 1", "LED_ON")
+    send_and_receive(arduino2, "Arduino 2", "LED_ON")
+    time.sleep(3)
